@@ -18,3 +18,11 @@ export interface ServiceRecord {
   notes?: string;
   technician?: string;
 }
+
+export interface LogType {
+  id: number;
+  juiceType: string;
+  quantity: number;
+  status: "pending" | "processing" | "completed" | "failed";
+  createdAt?: Date;
+}

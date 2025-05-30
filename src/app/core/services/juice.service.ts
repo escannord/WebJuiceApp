@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { Juice, ServiceRecord } from '../models/juice.model';
+import { Juice, ServiceRecord } from '../../models/juice.model';
 
 @Injectable({
   providedIn: 'root'

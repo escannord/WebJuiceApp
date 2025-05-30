@@ -1,9 +1,23 @@
 /* Global styles for Juice Dispenser App */
 
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
+@use "tailwindcss";
+
+// * {
+//   box-sizing: border-box;
+//   margin: 0;
+//   padding: 0;
+// }
+
+:root {
+  --primary-color: #ff8563;
+  --secondary-color: #00838f;
+  --accent-color: #ffb300;
+  --background-color: #f8f9fa;
+  --text-color: #333;
+  --border-color: #ddd;
+  --success-color: #2e7d32;
+  --warning-color: #ff8f00;
+  --danger-color: #c62828;
 }
 
 html, body {

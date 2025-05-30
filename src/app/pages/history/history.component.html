@@ -1,0 +1,83 @@
+<div class="history-page">
+    <h2>Service History</h2>
+
+    <div class="filters">
+        <div class="filter-group">
+            <label for="items-per-page">Items per page:</label>
+            <select id="items-per-page" [(ngModel)]="itemsPerPage" (change)="changeItemsPerPage()">
+                <option value="5">5</option>
+                <option value="10">10</option>
+                <option value="20">20</option>
+                <option value="50">50</option>
+            </select>
+        </div>
+
+        <div class="filter-group">
+            <label for="filter-type">Filter by Type:</label>
+            <select id="filter-type" [(ngModel)]="filterType" (change)="applyFilters()">
+                <option value="all">All Types</option>
+                <option *ngFor="let juiceType of distinctJuiceTypes" [value]="juiceType">
+                    {{ juiceType | titlecase }}
+                </option>
+            </select>
+        </div>
+
+        <div class="filter-group">
+            <label for="filter-date">Filter by Date Range:</label>
+            <div class="date-inputs">
+                <input type="date" id="date-from" [(ngModel)]="dateFrom" (change)="applyFilters()">
+                <span>to</span>
+                <input type="date" id="date-to" [(ngModel)]="dateTo" (change)="applyFilters()">
+            </div>
+        </div>
+    </div>
+
+    <div class="history-table-container">
+        <table class="history-table table-auto">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Date</th>
+                    <th>Juice type</th>
+                    <th>Quantity</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngFor="let record of paginatedRecords" [ngClass]="getRecordClass(record)">
+                    <td>{{ record.id }}</td>
+                    <td>{{ record.createdAt | date:'medium' }}</td>
+                    <td>
+                        <span class="record-type" [ngClass]="'type-' + record?.juiceType | titlecase">
+                            {{ record.juiceType | titlecase }}
+                        </span>
+                    </td>
+                    <td>{{ record?.quantity }}</td>
+                    <td><span class="status-dot" [ngClass]="'status-' + record.status"
+                            [attr.title]="record.status | titlecase"></span></td>
+                </tr>
+                <tr *ngIf="filteredRecords.length === 0">
+                    <td colspan="5" class="no-records">No records found matching your filters.</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="pagination-controls" *ngIf="totalPages > 1">
+        <button (click)="changePage(1)" [disabled]="currentPage === 1">First</button>
+        <button (click)="changePage(currentPage - 1)" [disabled]="currentPage === 1">Previous</button>
+
+        <span *ngFor="let page of getPageNumbers()">
+            <button (click)="changePage(page)" [class.active]="page === currentPage" [disabled]="page === currentPage">
+                {{ page }}
+            </button>
+        </span>
+
+        <button (click)="changePage(currentPage + 1)" [disabled]="currentPage === totalPages">Next</button>
+        <button (click)="changePage(totalPages)" [disabled]="currentPage === totalPages">Last</button>
+
+        <span class="page-info">
+            Page {{ currentPage }} of {{ totalPages }} ({{ totalItems }} records)
+        </span>
+    </div>
+</div>

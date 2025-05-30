@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Juice } from '../../models/juice.model';
-import { JuiceService } from '../../services/juice.service';
+import { JuiceService } from '../../core/services/juice.service';
 import { JuiceLevelComponent } from '../../components/juice-level/juice-level.component';
 
 @Component({

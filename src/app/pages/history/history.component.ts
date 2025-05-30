@@ -1,252 +1,148 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { ServiceRecord } from '../../models/juice.model';
-import { JuiceService } from '../../services/juice.service';
+import { Component, OnInit } from "@angular/core";
+import { CommonModule } from "@angular/common";
+import { FormsModule } from "@angular/forms";
+import { LogType, ServiceRecord } from "../../models/juice.model";
+import { JuiceService } from "../../core/services/juice.service";
+import { LogService } from "../../core/services/log.service";
 
 @Component({
-  selector: 'app-history',
+  selector: "app-history",
   standalone: true,
   imports: [CommonModule, FormsModule],
-  template: `
-    <div class="history-page">
-      <h2>Service History</h2>
-      
-      <div class="filters">
-        <div class="filter-group">
-          <label for="filter-type">Filter by Type:</label>
-          <select id="filter-type" [(ngModel)]="filterType" (change)="applyFilters()">
-            <option value="all">All Types</option>
-            <option value="refill">Refill</option>
-            <option value="maintenance">Maintenance</option>
-            <option value="cleaning">Cleaning</option>
-          </select>
-        </div>
-        
-        <div class="filter-group">
-          <label for="filter-date">Filter by Date Range:</label>
-          <div class="date-inputs">
-            <input type="date" id="date-from" [(ngModel)]="dateFrom" (change)="applyFilters()">
-            <span>to</span>
-            <input type="date" id="date-to" [(ngModel)]="dateTo" (change)="applyFilters()">
-          </div>
-        </div>
-      </div>
-      
-      <div class="history-table-container">
-        <table class="history-table">
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th>Type</th>
-              <th>Flavor</th>
-              <th>Details</th>
-              <th>Technician</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let record of filteredRecords" [ngClass]="getRecordClass(record)">
-              <td>{{ record.date | date:'medium' }}</td>
-              <td>
-                <span class="record-type" [ngClass]="'type-' + record.type">
-                  {{ record.type | titlecase }}
-                </span>
-              </td>
-              <td>{{ record.flavorName || '-' }}</td>
-              <td>
-                <ng-container *ngIf="record.type === 'refill'">
-                  Level changed: {{ record.previousLevel }}% → {{ record.newLevel }}%
-                </ng-container>
-                <ng-container *ngIf="record.notes">
-                  {{ record.notes }}
-                </ng-container>
-              </td>
-              <td>{{ record.technician }}</td>
-            </tr>
-            <tr *ngIf="filteredRecords.length === 0">
-              <td colspan="5" class="no-records">No records found matching your filters.</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  `,
-  styles: [`
-    .history-page {
-      padding: 1.5rem;
-    }
-    
-    h2 {
-      margin-top: 0;
-      margin-bottom: 1.5rem;
-      color: #333;
-    }
-    
-    .filters {
-      background-color: #f5f5f5;
-      padding: 1rem;
-      border-radius: 8px;
-      margin-bottom: 1.5rem;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 1.5rem;
-    }
-    
-    .filter-group {
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-    }
-    
-    label {
-      font-weight: 500;
-      font-size: 0.875rem;
-      color: #555;
-    }
-    
-    select, input {
-      padding: 0.5rem;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      font-size: 0.875rem;
-    }
-    
-    .date-inputs {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-    
-    .history-table-container {
-      overflow-x: auto;
-    }
-    
-    .history-table {
-      width: 100%;
-      border-collapse: collapse;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      border-radius: 8px;
-      overflow: hidden;
-    }
-    
-    th, td {
-      padding: 0.75rem 1rem;
-      text-align: left;
-    }
-    
-    th {
-      background-color: #f0f0f0;
-      font-weight: 500;
-      color: #333;
-    }
-    
-    tr:nth-child(even) {
-      background-color: #f9f9f9;
-    }
-    
-    tr:hover {
-      background-color: #f0f7ff;
-    }
-    
-    .record-type {
-      display: inline-block;
-      padding: 0.25rem 0.5rem;
-      border-radius: 4px;
-      font-size: 0.75rem;
-      font-weight: 500;
-    }
-    
-    .type-refill {
-      background-color: #e3f2fd;
-      color: #1565c0;
-    }
-    
-    .type-maintenance {
-      background-color: #fff8e1;
-      color: #ff8f00;
-    }
-    
-    .type-cleaning {
-      background-color: #e8f5e9;
-      color: #2e7d32;
-    }
-    
-    .no-records {
-      text-align: center;
-      color: #666;
-      padding: 2rem !important;
-    }
-    
-    @media (max-width: 768px) {
-      .filters {
-        flex-direction: column;
-        gap: 1rem;
-      }
-      
-      .history-table th, .history-table td {
-        padding: 0.5rem;
-      }
-    }
-  `]
+  templateUrl: "./history.component.html",
+  styleUrls: ["./history.component.scss"],
 })
 export class HistoryComponent implements OnInit {
-  serviceRecords: ServiceRecord[] = [];
-  filteredRecords: ServiceRecord[] = [];
-  
-  filterType: string = 'all';
-  dateFrom: string = '';
-  dateTo: string = '';
-  
-  constructor(private juiceService: JuiceService) {}
-  
+  logRecords: LogType[] = [];
+  filteredRecords: LogType[] = [];
+
+  // Pagination variables
+  currentPage: number = 1;
+  itemsPerPage: number = 10;
+  totalItems: number = 0;
+  totalPages: number = 0;
+  paginatedRecords: LogType[] = [];
+
+  filterType: string = "all";
+  dateFrom: string = "";
+  dateTo: string = "";
+
+  constructor(
+    private juiceService: JuiceService,
+    private logService: LogService
+  ) {}
+
   ngOnInit(): void {
-    this.juiceService.getServiceHistory().subscribe(records => {
-      this.serviceRecords = records;
+    this.loadLogs();
+  }
+
+  loadLogs(): void {
+    this.logService.getLogs().subscribe((records) => {
+      this.logRecords = records;
       this.filteredRecords = [...records];
-      
-      // Initialize date filters to last 30 days by default
-      const today = new Date();
-      const thirtyDaysAgo = new Date();
-      thirtyDaysAgo.setDate(today.getDate() - 30);
-      
-      this.dateTo = this.formatDate(today);
-      this.dateFrom = this.formatDate(thirtyDaysAgo);
-      
-      this.applyFilters();
+      this.totalItems = this.filteredRecords.length;
+      this.totalPages = Math.ceil(this.totalItems / this.itemsPerPage);
+      this.updatePaginatedRecords();
     });
   }
-  
+
   applyFilters(): void {
-    let filtered = [...this.serviceRecords];
-    
+    let filtered = [...this.logRecords];
+
     // Apply type filter
-    if (this.filterType !== 'all') {
-      filtered = filtered.filter(record => record.type === this.filterType);
+    if (this.filterType !== "all") {
+      filtered = filtered.filter(
+        (record) => record.juiceType === this.filterType
+      );
     }
-    
+
     // Apply date filters
     if (this.dateFrom) {
       const fromDate = new Date(this.dateFrom);
-      filtered = filtered.filter(record => new Date(record.date) >= fromDate);
+      filtered = filtered.filter(
+        (record) => new Date(record.createdAt as any) >= fromDate
+      );
     }
-    
+
     if (this.dateTo) {
       const toDate = new Date(this.dateTo);
       toDate.setHours(23, 59, 59, 999); // Set to end of day
-      filtered = filtered.filter(record => new Date(record.date) <= toDate);
+      filtered = filtered.filter(
+        (record) => new Date(record.createdAt as any) <= toDate
+      );
     }
-    
+
     this.filteredRecords = filtered;
+    this.totalItems = this.filteredRecords.length;
+    this.totalPages = Math.ceil(this.totalItems / this.itemsPerPage);
+    this.currentPage = 1; // Reset to first page when filters change
+    this.updatePaginatedRecords();
   }
-  
-  getRecordClass(record: ServiceRecord): string {
-    return `record-${record.type}`;
+
+  updatePaginatedRecords(): void {
+    const startIndex = (this.currentPage - 1) * this.itemsPerPage;
+    const endIndex = startIndex + this.itemsPerPage;
+    this.paginatedRecords = this.filteredRecords.slice(startIndex, endIndex);
   }
-  
+
+  changePage(page: number): void {
+    if (page >= 1 && page <= this.totalPages) {
+      this.currentPage = page;
+      this.updatePaginatedRecords();
+    }
+  }
+
+  changeItemsPerPage(): void {
+    this.totalPages = Math.ceil(this.totalItems / this.itemsPerPage);
+    if (this.currentPage > this.totalPages) {
+      this.currentPage = this.totalPages;
+    }
+    this.updatePaginatedRecords();
+  }
+
+  getPageNumbers(): number[] {
+    const pagesToShow = 5; // Number of page buttons to show
+    let startPage: number, endPage: number;
+
+    if (this.totalPages <= pagesToShow) {
+      // Less than pagesToShow total pages so show all
+      startPage = 1;
+      endPage = this.totalPages;
+    } else {
+      // More than pagesToShow total pages so calculate start and end pages
+      const halfPagesToShow = Math.floor(pagesToShow / 2);
+
+      if (this.currentPage <= halfPagesToShow + 1) {
+        startPage = 1;
+        endPage = pagesToShow;
+      } else if (this.currentPage + halfPagesToShow >= this.totalPages) {
+        startPage = this.totalPages - pagesToShow + 1;
+        endPage = this.totalPages;
+      } else {
+        startPage = this.currentPage - halfPagesToShow;
+        endPage = this.currentPage + halfPagesToShow;
+      }
+    }
+
+    return Array.from(
+      { length: endPage + 1 - startPage },
+      (_, i) => startPage + i
+    );
+  }
+
+  get distinctJuiceTypes(): string[] {
+    const types = this.logRecords.map(record => record?.juiceType);
+    return [...new Set(types)];
+  }
+
+  getRecordClass(record: LogType): string {
+    return `record-${record?.juiceType?.toLowerCase()}`;
+  }
+
   private formatDate(date: Date): string {
     const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
     return `${year}-${month}-${day}`;
   }
 }
